@@ -1,0 +1,51 @@
+services:
+
+  # ─── DATABASE CONTAINER ───────────────────────────
+  db:
+    image: postgres
+    container_name: todo-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tododb
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - todo-network
+
+  # ─── BACKEND CONTAINER ────────────────────────────
+  backend:
+    build: ./backend
+    container_name: todo-backend
+    environment:
+      DB_HOST: db
+      DB_NAME: tododb
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    restart: on-failure
+    networks:
+      - todo-network
+
+  # ─── FRONTEND CONTAINER ───────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: todo-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - todo-network
+
+# ─── VOLUMES ──────────────────────────────────────
+volumes:
+  postgres_data:
+
+# ─── NETWORKS ─────────────────────────────────────
+networks:
+  todo-network:
+    driver: bridge
